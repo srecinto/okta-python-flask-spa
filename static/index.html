@@ -1,0 +1,85 @@
+
+<html>
+    <head>
+        <title>okta-python-flask-spa</title>
+        <script src="https://global.oktacdn.com/okta-signin-widget/5.6.1/js/okta-sign-in.min.js" type="text/javascript"></script>
+        <link href="https://global.oktacdn.com/okta-signin-widget/5.6.1/css/okta-sign-in.min.css" type="text/css" rel="stylesheet"/>
+        <script>
+            var signIn = new OktaSignIn({
+              baseUrl: 'https://mr2.oktapreview.com',
+              clientId: '0oazf3o18bkl2Xk9u0h7',
+              redirectUri: 'https://91dc1de415fe416caf26947b17f8b305.vfs.cloud9.us-east-1.amazonaws.com/',
+              authParams: {
+                issuer: 'https://mr2.oktapreview.com/oauth2/default',
+                scopes: ['openid', 'email', 'profile']
+              },
+              features: {
+                rememberMe: true,                 // Setting to false will remove the checkbox to save username
+                multiOptionalFactorEnroll: true,  // Allow users to enroll in multiple optional factors before finishing the authentication flow.
+                selfServiceUnlock: true,          // Will enable unlock in addition to forgotten password
+                smsRecovery: true,                // Enable SMS-based account recovery
+                callRecovery: true,               // Enable voice call-based account recovery
+                webauthn: true,                   // Enalbe passwordless
+                passwordlessAuth: true
+              },
+              el: '#okta-login-container'
+            });
+            
+            function oktaSignOut(){
+                console.log("Signing Out of Okta Session");
+                signIn.authClient.signOut();
+            }
+        </script>
+    </head>
+    <body>
+        <div id="okta-login-container" class="login-form"></div>
+        <div id="showLoggedIn-container" style="display: none;">
+            <h1>Logged In Successfully! <a href="javascript:oktaSignOut();">Sign Out</a></h1>
+        </div>
+        <script>
+        
+            signIn.authClient.tokenManager.get("idToken")
+            .then(function(token) {
+                console.log("Got id Token!");
+                    // Token is valid
+                    signIn.authClient.token.verify(token)
+                    .then(function() {
+                        // the idToken is valid
+                        console.log("Token is Valid!");
+                        console.log(token);
+                        showLoggedIn();
+                    })
+                    .catch(function(err) {
+                        console.log("Token is not valid!");
+                        showSigninWidget();
+                    });
+            })
+            .catch(function(err) {
+                console.log("Unable to retrieve idToken from local storage");
+                showSigninWidget();
+            });
+              
+            function showSigninWidget() {
+                signIn.showSignInToGetTokens({
+                  scopes: ['openid', 'email', 'profile']
+                }).then(function(tokens) {
+                    console.log(tokens);
+                    console.log("Storing Tokens");
+                    signIn.authClient.tokenManager.setTokens(tokens);
+                    console.log("Storing Tokens Complete!");
+                    showLoggedIn();
+                }).catch(function(error) {
+                  // This function is invoked with errors the widget cannot recover from:
+                  // Known errors: CONFIG_ERROR, UNSUPPORTED_BROWSER_ERROR
+                  console.log(error);
+                });
+            }
+            
+            function showLoggedIn() {
+                signIn.hide();
+                document.getElementById("showLoggedIn-container").style.display = "block";
+            }
+            
+        </script>
+    </body>
+</html>
